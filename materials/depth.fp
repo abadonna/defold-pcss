@@ -10,7 +10,6 @@ vec4 float_to_rgba(float v)
 
 void main()
 {
-    float far = 20.;
-    gl_FragColor = float_to_rgba(- var_position.z / far);
+    gl_FragColor = float_to_rgba(gl_FragCoord.z);
 }
 

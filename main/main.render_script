@@ -121,12 +121,6 @@ function render_shadows(self)
 end
 
 function update(self)
-    local aspect = self.w / self.h
-    local fov = 0.7854
-    local T = self.near * math.tan(0.5 * fov)
-    local R = aspect * T
-    self.cb.righttop = vmath.vector4(R, T, self.near, self.far)
-
     render_shadows(self)
     
     render.set_depth_mask(true)
@@ -175,20 +169,33 @@ function update(self)
     render.disable_material()
 
     
-    local mtx_light = self.bias_matrix * self.light_projection * self.light_transform * vmath.inv(self.view)
+    local mtx_light = self.bias_matrix * self.light_projection * self.light_transform 
     local inv_light = vmath.inv(self.light_transform)
     local light     = vmath.vector4()
 
     light.x = inv_light.m03
     light.y = inv_light.m13
     light.z = inv_light.m23
-    light.w = 0--as light is direction
+    light.w = 1
 
     self.cb.mtx_light0 = mtx_light.c0
     self.cb.mtx_light1 = mtx_light.c1
     self.cb.mtx_light2 = mtx_light.c2
     self.cb.mtx_light3 = mtx_light.c3
     self.cb.light = light
+
+    local mtx_ivp =  vmath.inv(get_projection(self) * self.view)
+    self.cb.mtx_ivp0 = mtx_ivp.c0
+    self.cb.mtx_ivp1 = mtx_ivp.c1
+    self.cb.mtx_ivp2 = mtx_ivp.c2
+    self.cb.mtx_ivp3 = mtx_ivp.c3
+
+    local mtx_iview =  vmath.inv(self.view)
+    self.cb.mtx_iview0 = mtx_iview.c0
+    self.cb.mtx_iview1 = mtx_iview.c1
+    self.cb.mtx_iview2 = mtx_iview.c2
+    self.cb.mtx_iview3 = mtx_iview.c3
+    
     
     render.disable_state(render.STATE_DEPTH_TEST)
     render.set_depth_mask(false)
@@ -196,13 +203,14 @@ function update(self)
     render.set_render_target(self.pcss_target)
     render.clear({[render.BUFFER_COLOR_BIT] = vmath.vector4(0)})
     render.enable_texture(0, self.shadow_target, render.BUFFER_COLOR_BIT)
-    render.enable_texture(1, self.normal_target, render.BUFFER_COLOR_BIT)
-    render.enable_texture(2, self.depth_target, render.BUFFER_COLOR_BIT)
+    render.enable_texture(1, self.depth_target, render.BUFFER_COLOR_BIT)
     render.draw(self.quad_pred, self.cb)
    
     
     render.set_render_target(render.RENDER_TARGET_DEFAULT)
     render.enable_texture(0, self.color_target, render.BUFFER_COLOR_BIT)
+    render.enable_texture(1, self.normal_target, render.BUFFER_COLOR_BIT)
+    render.enable_texture(2, self.depth_target, render.BUFFER_COLOR_BIT)
     render.enable_texture(3, self.pcss_target, render.BUFFER_COLOR_BIT)
     render.enable_material("deferred")
     render.draw(self.quad_pred, self.cb)
@@ -253,7 +261,6 @@ function on_message(self, message_id, message)
         self.projection_fn = fixed_fit_projection
     elseif message_id == hash("set_light_transform") then
         self.light_transform = message.transform
-        self.light_direction = message.direction
     elseif message_id == hash("set_light_projection") then
         self.light_projection = message.projection
     end
