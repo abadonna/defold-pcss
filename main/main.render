@@ -1,0 +1,17 @@
+script: "/main/main.render_script"
+materials {
+  name: "depth"
+  material: "/materials/depth.material"
+}
+materials {
+  name: "normal"
+  material: "/materials/normal.material"
+}
+materials {
+  name: "pcss"
+  material: "/materials/pcss.material"
+}
+materials {
+  name: "deferred"
+  material: "/materials/deferred.material"
+}
