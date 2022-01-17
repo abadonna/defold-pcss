@@ -253,7 +253,6 @@ function on_message(self, message_id, message)
         self.projection_fn = fixed_fit_projection
     elseif message_id == hash("set_light_transform") then
         self.light_transform = message.transform
-        self.light_direction = message.direction
     elseif message_id == hash("set_light_projection") then
         self.light_projection = message.projection
     end
