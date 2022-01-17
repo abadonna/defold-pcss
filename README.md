@@ -6,7 +6,7 @@ This branch is for perspective light projection.
 I couldn't make it work in view-space, so I moved computations to world space (restoring pixel position from depth).
 Probably because perspective projection doesn't work well with linear depth.
 
-![pcss](https://github.com/abadonna/defold-pcss/blob/main/demo.png)
+![pcss](https://github.com/abadonna/defold-pcss/blob/perspective/demo.png)
 
 ## Credits
 
