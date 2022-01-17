@@ -2,6 +2,7 @@
 
 Deferred shading + some shadow map filter experiments: pcf, poisson, pcss
 
+![pcss](https://github.com/abadonna/defold-pcss/blob/main/demo.png)
 
 ## Credits
 
