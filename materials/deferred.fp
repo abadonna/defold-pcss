@@ -34,17 +34,8 @@ void main()
 	float shade = shadow.x;
 
 	/*
-	if (shadow.y == 1.) { //penumbra extra blur
-		vec2 texel = 1.0 / vec2(textureSize(tex3, 0));
-		for (int x = -2; x < 2; ++x) 
-		{
-			for (int y = -2; y < 2; ++y) 
-			{
-				vec2 offset = vec2(float(x), float(y)) * texel;
-				shade += texture2D(tex3, var_texcoord0 + offset).x;
-			}
-		}
-		shade = shade / 17.;
+	if (shadow.y == 1.) { //penumbra extra blur ?
+	
 	}*/
 	
 	vec3 ambient_light = vec3(0.2);
@@ -54,12 +45,8 @@ void main()
 	diff_light = max(dot(normal, diff_light), 0.0) + ambient_light;
 	diff_light = clamp(diff_light, 0.0, 1.0);
 
-	//float fresnel = clamp(1 - dot(-pos, normal), 0., 1.);
-
-
 
 	gl_FragColor = vec4(diff_light * color.xyz * shade, color.w);
 	//gl_FragColor = texture(tex3, var_texcoord0);
-	//gl_FragColor = vec4(fresnel,fresnel,fresnel, 1);
 
 }

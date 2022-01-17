@@ -10,7 +10,7 @@ function init(self)
 	--set light
 	local proj = vmath.matrix4_orthographic(-8, 8, -8, 8, 0.1, 20)
 	--local proj = vmath.matrix4_perspective(0.7854, 1.5, 0.1, 20)
-	local light_pos = vmath.vector3(-2, 2, 2)
+	local light_pos = vmath.vector3(-2, 2., 2)
 	local light_transform = vmath.matrix4_look_at(light_pos, vmath.vector3(), vmath.vector3(0, 1,0))
 	msg.post("@render:", "set_light_transform",  { transform  = light_transform, direction = light_pos })
 	msg.post("@render:", "set_light_projection", { projection = proj })
@@ -41,6 +41,10 @@ function update(self, dt)
 	changed, checked = imgui.checkbox("pcss 8/16", self.mode == 3)
 	if changed and checked then
 		set_mode(self, 3)
+	end
+	changed, checked = imgui.checkbox("blockers 8", self.mode == 4)
+	if changed and checked then
+		set_mode(self, 4)
 	end
 	
 	imgui.end_window()

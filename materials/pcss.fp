@@ -3,9 +3,9 @@ varying mediump vec3 var_light;
 uniform highp mat4 mtx_proj;
 uniform highp vec4 righttop; //right, top, near, far
 
-uniform mediump sampler2D tex0;
+uniform highp sampler2D tex0;
 uniform mediump sampler2D tex1;
-uniform mediump sampler2D tex2;
+uniform highp sampler2D tex2;
 
 uniform mediump vec4 mtx_light0;
 uniform mediump vec4 mtx_light1;
@@ -14,7 +14,7 @@ uniform mediump vec4 mtx_light3;
 
 uniform lowp vec4 mode;
 
-float LIGHT_SIZE = 7.; 
+float LIGHT_SIZE = 8.; 
 float NEAR = 0.1;
 
 const vec2 samples[128] = vec2[128](
@@ -160,13 +160,13 @@ float random(vec3 seed, int i){
 	return fract(sin(dot_product) * 43758.5453);
 }
 
-float poisson(vec3 proj, int count, float scale, float bias) {
-	vec2 texel = scale / textureSize(tex0, 0);
-
+float poisson(vec3 proj, int count, vec2 scale, float bias) {
 	float sum = 0; 
 	for (int i = 0; i < count; i++) {
+		
 		int index = int(128.0*random(gl_FragCoord.xyy, i))%128;
-		float depth = rgba_to_float(texture2D(tex0, proj.xy + texel* samples[index]));
+		vec2 uv = proj.xy + scale * samples[index];
+		float depth = rgba_to_float(texture2D(tex0, uv));
 		float shadow = (depth < proj.z - bias) ? 1. : 0.;
 		sum += shadow; 
 	}
@@ -212,38 +212,37 @@ float simple(vec3 proj, float bias) {
 }
 
 
-float find_blockers(vec3 proj, float bias, out float shadow){
-	float sum = 0;
+float find_blockers(vec3 proj, out float distance){
+	distance = 0;
 	float count = 0;
-	shadow = 0;
-	float range = LIGHT_SIZE * (proj.z - NEAR) / proj.z;
-	vec2 texel = range / textureSize(tex0, 0);
+	float scale = (proj.z - 0.09) / proj.z;
+	float shadow = 0;
+	float range = scale * LIGHT_SIZE;
+	vec2 texel = vec2(range) / textureSize(tex0, 0);
 	
 	int limit = 8;
 	for (int i = 0; i < limit; i++) {
 		int index = int(128.0 * random(gl_FragCoord.xyy, i)) % 128;
 		float depth = rgba_to_float(texture2D(tex0, proj.xy + texel* samples[index]));
-		if (depth < proj.z - bias) {
-			sum += depth;
+		if (depth < proj.z - 0.03) {
+			distance += depth;
 			shadow += 1.;
 			count ++;
 		}
 	}
 
-	shadow = shadow / limit;
-
-	return count > 0. ? sum/count : -1.; 
+	distance = count > 0. ? distance / count : -1;
+	return shadow / limit; 
 }
 
 float pcss(vec3 proj, float bias, out float is_penumbra)
 {
-	float shadow = 0.;
+	float d_blocker = 0.;
 	is_penumbra = 0.;
-	float d_blocker = find_blockers(proj, bias, shadow);
-	if(d_blocker < 0.04 ) {
+	float shadow = find_blockers(proj, d_blocker);
+	if(d_blocker < 0.001 ) {
 		return 0.;
 	}
-
 	if (shadow == 1.) //full shadow, no penumbra?
 	{
 		return 1.;
@@ -255,9 +254,9 @@ float pcss(vec3 proj, float bias, out float is_penumbra)
 	
 	float penumbra = (proj.z - d_blocker) / d_blocker;
 	float scale = penumbra * LIGHT_SIZE * NEAR / proj.z;
+	if (scale > 20.) {return 0;}
 	
-	
-	return poisson(proj, count, scale, bias);
+	return poisson(proj, count, vec2(scale), bias);
 }
 
 mat4 get_shadow_mat()
@@ -287,15 +286,20 @@ void main()
 	vec3 light_dir = normalize(var_light);
 	float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
 
-	float penumbra = 0.;
+	float is_penumbra = 0.;
 	float shadow = 0.;
 	if (mode.x == 0.) {shadow = simple(dp.xyz, bias);}
 	else if (mode.x == 1.) {shadow = pcf_4x4(dp.xyz, bias);}
-	else if (mode.x == 2.) {shadow = poisson(dp.xyz, 4, 1., bias);}
-	else {shadow = pcss(dp.xyz, bias, penumbra);}
+	else if (mode.x == 2.) {shadow = poisson(dp.xyz, 4, 1./textureSize(tex0, 0), bias);}
+	else if (mode.x == 3.) {shadow = pcss(dp.xyz, bias, is_penumbra);}
+	else {
+		float dist;
+		shadow = find_blockers(dp.xyz, dist);
+	}
+
 
 	shadow = clamp(1. - shadow, 0.3, 1);
-	gl_FragColor = vec4(shadow, penumbra, 0, 1);
+	gl_FragColor = vec4(shadow, is_penumbra, 0, 1);
 	
-	//gl_FragColor = vec4(vec3(rgba_to_float(texture2D(tex1,var_texcoord0))), 1);
+	//gl_FragColor = vec4(vec3(rgba_to_float(texture2D(tex0,var_texcoord0))), 1);
 }
