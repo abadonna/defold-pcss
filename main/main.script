@@ -33,17 +33,21 @@ function update(self, dt)
 	if changed and checked then
 		set_mode(self, 1)
 	end
-	changed, checked = imgui.checkbox("poisson 4", self.mode == 2)
+	changed, checked = imgui.checkbox("random 8", self.mode == 2)
 	if changed and checked then
 		set_mode(self, 2)
 	end
-	changed, checked = imgui.checkbox("pcss 8/16", self.mode == 3)
+	changed, checked = imgui.checkbox("poisson 8", self.mode == 3)
 	if changed and checked then
 		set_mode(self, 3)
 	end
-	changed, checked = imgui.checkbox("blockers 8", self.mode == 4)
+	changed, checked = imgui.checkbox("pcss 16/16", self.mode == 4)
 	if changed and checked then
 		set_mode(self, 4)
+	end
+	changed, checked = imgui.checkbox("blockers 16", self.mode == 5)
+	if changed and checked then
+		set_mode(self, 5)
 	end
 	
 	imgui.end_window()
