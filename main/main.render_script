@@ -72,11 +72,11 @@ function init(self)
 
     self.view = vmath.matrix4()
 
-    self.shadow_target  = create_rt(512, 512, render.FILTER_LINEAR, true)
+    self.shadow_target  = create_rt(512, 512, render.FILTER_NEAREST, true)
 
     self.w = render.get_window_width()
     self.h = render.get_window_height()
-    self.depth_target 	= create_rt(self.w, self.h, render.FILTER_LINEAR, true)
+    self.depth_target 	= create_rt(self.w, self.h, render.FILTER_NEAREST, true)
     self.color_target 	= create_rt(self.w, self.h, render.FILTER_LINEAR, true)
     self.normal_target 	= create_rt(self.w, self.h, render.FILTER_LINEAR, true)
     self.pcss_target 	= create_rt(self.w, self.h, render.FILTER_LINEAR)
